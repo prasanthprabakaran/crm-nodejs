@@ -7,7 +7,7 @@ import mongoose from "mongoose";
 
 import connectDB from "./config/db.js";
 import { userRouter } from './routes/userRoutes.js';
-// import corsOptions from './config/corsOptions.js';
+// import corsOptions from "./config/corsOptions.js";
 
 import cookieParser from "cookie-parser";
 import path from 'path';
@@ -26,8 +26,10 @@ app.use(logger);
 
 
 const PORT = process.env.PORT || 3002;
-app.use(cors());
-// app.use(cors(corsOptions));
+app.use(cors({
+    origin: "https://crm-reactapp.netlify.app",
+    optionsSuccessStatus: 200
+}));
 app.use(express.json());
 
 app.post('/',(req,res,next) => {
@@ -36,6 +38,11 @@ app.post('/',(req,res,next) => {
     next()
 })
 app.use(cookieParser())
+
+app.use((req,res,next)=>{
+    res.header({"Access-Control-Allow-Origin": "*"})
+    next()
+})
 
 app.use('/', express.static(path.join(__dirname, 'public')))
 app.use("/", rootRouter);
