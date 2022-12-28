@@ -27,7 +27,7 @@ app.use(logger);
 
 const PORT = process.env.PORT || 3002;
 app.use(cors({
-    origin: "https://crm-reactapp.netlify.app",
+    origin: process.env.ORIGIN,
     credentials: true,
     optionsSuccessStatus: 200
 }));
