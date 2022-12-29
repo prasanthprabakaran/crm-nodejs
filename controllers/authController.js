@@ -45,7 +45,7 @@ export const login = async (req, res) => {
         // Create secure cookie with refresh token 
         res.cookie('jwt', refreshToken, {
             httpOnly: true, //accessible only by web server 
-            secure: false, //https
+            secure: true, //https
             sameSite: 'None', //cross-site cookie 
             maxAge: 7 * 24 * 60 * 60 * 1000 //cookie expiry: set to match rT
         })
@@ -87,8 +87,8 @@ export const refresh = (req, res) => {
                 process.env.ACCESS_TOKEN_SECRET,
                 { expiresIn: '15m' }
             )
-            res.cookie({secure: false})
             res.json({ accessToken })
+            // res.cookie({secure: false})
         }
     )
 }
