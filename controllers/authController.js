@@ -12,50 +12,43 @@ export const login = async (req, res) => {
         return res.status(400).json({ message: 'All fields are required' })
     }
 
-    try {
-        const user = await User.findOne({ username }).select("+password");
+    const foundUser = await User.findOne({ username }).exec()
 
-        if(!user) {
-            return res.status(401).json({ message: 'Invalid credentials'})
-        }
-
-        const isMatch = await user.matchPassword(password)
-
-        if(!isMatch) {
-            return res.status(401).json({ message: 'NOT MATCH'})
-        }
-
-        const accessToken = jwt.sign(
-            {
-                "UserInfo": {
-                    "username": user.username,
-                    "roles": user.roles
-                }
-            },
-            process.env.ACCESS_TOKEN_SECRET,
-            { expiresIn: '15m' }
-        )
-    
-        const refreshToken = jwt.sign(
-            { "username": user.username },
-            process.env.REFRESH_TOKEN_SECRET,
-            { expiresIn: '7d' }
-        )
-    
-        // Create secure cookie with refresh token 
-        res.cookie('jwt', refreshToken, {
-            httpOnly: true, //accessible only by web server 
-            secure: true, //https
-            sameSite: 'None', //cross-site cookie 
-            maxAge: 7 * 24 * 60 * 60 * 1000 //cookie expiry: set to match rT
-        })
-    
-        // Send accessToken containing username and roles 
-        res.json({ accessToken })
-
-    } catch (err) {
-        console.log(err)
+    if (!foundUser || !foundUser.active) {
+        return res.status(401).json({ message: 'Unauthorized' })
     }
+
+    const match = await bcrypt.compare(password, foundUser.password)
+
+    if (!match) return res.status(401).json({ message: 'Unauthorized' })
+
+    const accessToken = jwt.sign(
+        {
+            "UserInfo": {
+                "username": foundUser.username,
+                "roles": foundUser.roles
+            }
+        },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: '15m' }
+    )
+
+    const refreshToken = jwt.sign(
+        { "username": foundUser.username },
+        process.env.REFRESH_TOKEN_SECRET,
+        { expiresIn: '7d' }
+    )
+
+    // Create secure cookie with refresh token 
+    res.cookie('jwt', refreshToken, {
+        httpOnly: true, //accessible only by web server 
+        secure: true, //https
+        sameSite: 'None', //cross-site cookie 
+        maxAge: 7 * 24 * 60 * 60 * 1000 //cookie expiry: set to match rT
+    })
+
+    // Send accessToken containing username and roles 
+    res.json({ accessToken })
 }
 // @desc Refresh
 // @route GET /auth/refresh
