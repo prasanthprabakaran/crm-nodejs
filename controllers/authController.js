@@ -63,7 +63,7 @@ export const login = async (req, res) => {
 export const refresh = (req, res) => {
     const cookies = req.cookies
 
-    if (!cookies?.jwt) return res.status(401).json({ message: 'Unauthorized' })
+    if (!cookies?.jwt) return res.status(401).json({ message: 'Unauthorized-NoCookie' })
 
     const refreshToken = cookies.jwt
 
@@ -75,7 +75,7 @@ export const refresh = (req, res) => {
 
             const foundUser = await User.findOne({ username: decoded.username }).exec()
 
-            if (!foundUser) return res.status(401).json({ message: 'Unauthorized' })
+            if (!foundUser) return res.status(401).json({ message: 'Unauthorized-NoUser-Found' })
 
             const accessToken = jwt.sign(
                 {
@@ -88,7 +88,6 @@ export const refresh = (req, res) => {
                 { expiresIn: '15m' }
             )
             res.json({ accessToken })
-            // res.cookie({secure: false})
         }
     )
 }
