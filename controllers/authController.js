@@ -12,13 +12,13 @@ export const login = async (req, res) => {
         return res.status(400).json({ message: 'All fields are required' })
     }
 
-    const foundUser = await User.findOne({ username }).exec()
+    const foundUser = await User.findOne({ username }).select("+password").exec()
 
     if (!foundUser || !foundUser.active) {
         return res.status(401).json({ message: 'Unauthorized' })
     }
 
-    const match = await bcrypt.compare(password, foundUser.password)
+    const match = await foundUser.matchPassword(password);
 
     if (!match) return res.status(401).json({ message: 'Unauthorized' })
 
